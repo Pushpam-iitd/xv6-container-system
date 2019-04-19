@@ -17,6 +17,8 @@
 #include "fcntl.h"
 #include "syscall.h"
 
+// #include "string.h"
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -123,7 +125,8 @@ sys_fstat(void)
 // Create the path new as a link to the same inode as old.
 int
 sys_link(void)
-{ if(isTraceOn==1)
+{ 
+  if(isTraceOn==1)
   {num_calls[SYS_link] ++;}
   char name[DIRSIZ], *new, *old;
   struct inode *dp, *ip;
@@ -342,6 +345,149 @@ sys_open(void)
   f->path = path;
   return fd;
 }
+
+// new code
+// a file is already present, we have to just make a copy and open the new file.
+
+char* my_itoa(int i, char* b){
+    char const digit[] = "0123456789";
+    char* p = b;
+    // if(i<0){
+    //     *p++ = '-';
+    //     i *= -1;
+    // }
+    int n = i;
+    do{
+        ++p;
+        n = n/10;
+    }while(n);
+    *p = '\0';
+    do{
+        *--p = digit[i%10];
+        i = i/10;
+    }while(i);
+    return b;
+}
+
+char* strcat(char* s1, const char* s2)
+{
+  char* b = s1;
+
+  while (*s1) ++s1;
+  while (*s2) *s1++ = *s2++;
+  *s1 = 0;
+
+  return b;
+}
+
+
+char *buf;
+
+int
+sys_newopen(void)
+{ 
+  if(isTraceOn==1)
+  {num_calls[SYS_open] ++;}
+  
+
+  char *path;
+  int fd, omode;
+  struct file *f;
+  struct inode *ip;
+
+  if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
+    return -1;
+
+  begin_op();
+
+  if(omode & O_CREATE){
+    ip = create(path, T_FILE, 0, 0);
+    if(ip == 0){
+      end_op();
+      return -1;
+    }
+  } 
+  else {
+    if((ip = namei(path)) == 0){
+      end_op();
+      return -1;
+    }
+    ilock(ip);
+    if(ip->type == T_DIR && omode != O_RDONLY){
+      iunlockput(ip);
+      end_op();
+      return -1;
+    }
+  }
+
+  if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
+    if(f)
+      fileclose(f);
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+  iunlock(ip);
+  end_op();
+
+  f->type = FD_INODE;
+  f->ip = ip;
+  f->off = 0;
+  f->readable = !(omode & O_WRONLY);
+  f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+  f->path = path;
+  // return fd;
+
+  // fd has the original file
+  struct proc *curproc = myproc();
+  struct file *f2;
+  int fd2;
+  int ind = curproc->cid;
+
+  char *sind = (char *)kalloc();
+  // strncpy(sind,my_itoa(ind,sind),);
+  sind = my_itoa(ind,sind);
+  char *path2 = strcat(path,sind);
+  struct inode *ip2;
+
+  begin_op();
+  ip2 = create(path2, T_FILE, 0, 0);
+  if(ip2 == 0){
+    end_op();
+    return -1;
+  }
+
+  if((f2 = filealloc()) == 0 || (fd2 = fdalloc(f2)) < 0){
+    if(f2)
+      fileclose(f2);
+    iunlockput(ip2);
+    end_op();
+    return -1;
+  }
+  iunlock(ip2);
+  end_op();
+
+  f2->type = FD_INODE;
+  f2->ip = ip2;
+  f2->off = 0;
+  f2->readable = !(omode & O_WRONLY);
+  f2->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+  f2->path = path2;
+
+  int n;
+
+  while( (n = fileread(f, buf, 1)) > 0 ){
+    filewrite(f2,buf,1);
+  }
+
+  myproc()->ofile[fd] = 0;
+  fileclose(f);
+
+  return fd2;  
+}
+
+// end  new code
+
 
 int
 sys_mkdir(void)
