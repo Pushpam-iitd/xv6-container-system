@@ -63,7 +63,7 @@ argptr(int n, char **pp, int size)
 {
   int i;
   struct proc *curproc = myproc();
- 
+
   if(argint(n, &i) < 0)
     return -1;
   if(size < 0 || (uint)i >= curproc->sz || (uint)i+size > curproc->sz)
@@ -108,8 +108,6 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_halt(void);
 extern int sys_toggle(void);
-extern int sys_print_count(void);
-extern int sys_add(void);
 extern int sys_ps(void);
 extern int sys_send(void);
 extern int sys_recv(void);
@@ -145,16 +143,13 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_halt]    sys_halt,
 [SYS_toggle]  sys_toggle,
-[SYS_print_count]  sys_print_count,
-[SYS_add]     sys_add,
 [SYS_ps]      sys_ps,
-[SYS_send]	  sys_send,
-[SYS_recv]    sys_recv,
 [SYS_create_container] sys_create_container,
 [SYS_destroy_container] sys_destroy_container,
 [SYS_join_container] sys_join_container,
 [SYS_leave_container] sys_leave_container,
-
+[SYS_send]	  sys_send,
+[SYS_recv]    sys_recv,
 };
 
 // static int (*syscalls2[])(int,int) = {
@@ -165,7 +160,7 @@ static int (*syscalls[])(void) = {
 
 void
 syscall(void)
-{	
+{
 
   if(syscallhappened==0){
   	init_queues();
@@ -177,7 +172,7 @@ syscall(void)
   num = curproc->tf->eax;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     curproc->tf->eax = syscalls[num]();
-  } 
+  }
   // else if(syscalls2[num](int ,int )){
   // 	curproc->tf->eax = syscalls2[num]();
   // }
@@ -231,43 +226,43 @@ initialising all message buffers
 const int EndOfFreeList = -1;
 int lastBufferUsed=0;
 
-// struct messageQueue* createQueue(unsigned capacity) 
-// { 
-//     struct messageQueue* mq = (struct messageQueue*) kalloc(); 
-//     mq->capacity = capacity; 
+// struct messageQueue* createQueue(unsigned capacity)
+// {
+//     struct messageQueue* mq = (struct messageQueue*) kalloc();
+//     mq->capacity = capacity;
 //     mq->front = 0;
-//     mq->size = 0;  
-//     mq->last = -1;  // This is important, see the enqueue 
-//     mq->array = kalloc(); 
-//     return mq; 
+//     mq->size = 0;
+//     mq->last = -1;  // This is important, see the enqueue
+//     mq->array = kalloc();
+//     return mq;
 // }
 
-struct intMessageQueue* createIntQueue(unsigned capacity) 
-{ 
-    struct intMessageQueue* mq = (struct intMessageQueue*) kalloc(); 
-    mq->capacity = capacity; 
+struct intMessageQueue* createIntQueue(unsigned capacity)
+{
+    struct intMessageQueue* mq = (struct intMessageQueue*) kalloc();
+    mq->capacity = capacity;
     mq->front =0;
-    mq->size = 0;  
-    mq->last = -1;  // This is important, see the enqueue 
-    mq->arr = (int*) kalloc(); 
-    return mq; 
+    mq->size = 0;
+    mq->last = -1;  // This is important, see the enqueue
+    mq->arr = (int*) kalloc();
+    return mq;
 }
 
-struct waitQueue* createWaitQueue(unsigned capacity) 
-{ 
-    struct waitQueue* mq = (struct waitQueue*) kalloc(); 
-    mq->capacity = capacity; 
+struct waitQueue* createWaitQueue(unsigned capacity)
+{
+    struct waitQueue* mq = (struct waitQueue*) kalloc();
+    mq->capacity = capacity;
     mq->front = 0;
-    mq->size = 0;  
-    mq->last = -1;  // This is important, see the enqueue 
-    mq->array = (struct waitQueueItem*) kalloc(); 
-    return mq; 
+    mq->size = 0;
+    mq->last = -1;  // This is important, see the enqueue
+    mq->array = (struct waitQueueItem*) kalloc();
+    return mq;
 }
 
 
 void
 init_queues(void)
-{ 
+{
   unsigned capacity = 50;             // capacity of one message quque
   for(int p = 0; p < NPROC; p++){
     // message_quque[p] = createQueue(capacity);
@@ -278,71 +273,71 @@ init_queues(void)
 
 
 
-// int isFull(struct messageQueue* mq) 
-// {  return (mq->size == mq->capacity);  } 
-  
+// int isFull(struct messageQueue* mq)
+// {  return (mq->size == mq->capacity);  }
 
-// int isEmpty(struct messageQueue* mq) 
-// {  return (mq->size == 0); } 
-  
 
-// void enqueue(struct messageQueue* mq, struct oneBuffer item) 
-// { 
-//     if (isFull(mq)) 
-//         return; 
-//     mq->rear = (mq->rear + 1)%mq->capacity; 
-//     mq->array[mq->rear] = item; 
-//     mq->size = mq->size + 1; 
-//     // printf("%d enqueued to queue\n", item); 
+// int isEmpty(struct messageQueue* mq)
+// {  return (mq->size == 0); }
+
+
+// void enqueue(struct messageQueue* mq, struct oneBuffer item)
+// {
+//     if (isFull(mq))
+//         return;
+//     mq->rear = (mq->rear + 1)%mq->capacity;
+//     mq->array[mq->rear] = item;
+//     mq->size = mq->size + 1;
+//     // printf("%d enqueued to queue\n", item);
 // }
 
 // oneBuffer dequeue(struct messageQueue* mq)                // ALWAYS CHECK IF EMPTY BEFORE USING DEQUEUE
-// {   
+// {
 
-//     if (isEmpty(mq)) 
-//         cprintf("dequeue from EMPTY\n");  
-//     oneBuffer item = mq->array[mq->front]; 
-//     mq->front = (mq->front + 1)%mq->capacity; 
-//     mq->size = mq->size - 1; 
-//     return item; 
+//     if (isEmpty(mq))
+//         cprintf("dequeue from EMPTY\n");
+//     oneBuffer item = mq->array[mq->front];
+//     mq->front = (mq->front + 1)%mq->capacity;
+//     mq->size = mq->size - 1;
+//     return item;
 // }
 
 
-int isWaitFull(struct waitQueue* mq) 
-{  
+int isWaitFull(struct waitQueue* mq)
+{
 	if(mq->size == mq->capacity)
 	return 1;
-	else return 0;  
-} 
-  
+	else return 0;
+}
 
-int isWaitEmpty(struct waitQueue* mq) 
-{  
+
+int isWaitEmpty(struct waitQueue* mq)
+{
 	if(mq->size == 0)
 	return 1;
-	else return 0; 
-} 
-  
+	else return 0;
+}
 
-void waitenqueue(struct waitQueue* mq, struct waitQueueItem item) 
-{ 
-    if (isWaitFull(mq)) 
-        return; 
-    mq->last = mq->last + 1; 
-    mq->array[mq->last] = item; 
-    mq->size = mq->size + 1; 
-    // printf("%d enqueued to queue\n", item); 
+
+void waitenqueue(struct waitQueue* mq, struct waitQueueItem item)
+{
+    if (isWaitFull(mq))
+        return;
+    mq->last = mq->last + 1;
+    mq->array[mq->last] = item;
+    mq->size = mq->size + 1;
+    // printf("%d enqueued to queue\n", item);
 }
 
 struct waitQueueItem waitdequeue(struct waitQueue* mq)                // ALWAYS CHECK IF EMPTY BEFORE USING DEQUEUE
-{   
+{
 
-    // if (isEmpty(mq)) 
-    //     return;  
-    struct waitQueueItem item = mq->array[mq->front]; 
-    mq->front = (mq->front + 1)%mq->capacity; 
-    mq->size = mq->size - 1; 
-    return item; 
+    // if (isEmpty(mq))
+    //     return;
+    struct waitQueueItem item = mq->array[mq->front];
+    mq->front = (mq->front + 1)%mq->capacity;
+    mq->size = mq->size - 1;
+    return item;
 }
 
 
@@ -350,40 +345,40 @@ struct waitQueueItem waitdequeue(struct waitQueue* mq)                // ALWAYS 
 
 /////////////////////////////////////////////////////////
 
-int isFull(struct intMessageQueue* mq) 
+int isFull(struct intMessageQueue* mq)
 {  if(mq->size == mq->capacity)
 	return 1;
-	else return 0;  
-} 
-  
+	else return 0;
+}
 
-int isEmpty(struct intMessageQueue* mq) 
-{  
+
+int isEmpty(struct intMessageQueue* mq)
+{
 	if(mq->size == 0)
 	return 1;
-	else return 0; 
-} 
-  
+	else return 0;
+}
 
-void enqueue(struct intMessageQueue* mq, int item) 
-{ 
-    if (isFull(mq)) 
-        return; 
-    mq->last = (mq->last + 1)%mq->capacity; 
-    mq->arr[mq->last] = item; 
-    mq->size = mq->size + 1; 
-    // printf("%d enqueued to queue\n", item); 
+
+void enqueue(struct intMessageQueue* mq, int item)
+{
+    if (isFull(mq))
+        return;
+    mq->last = (mq->last + 1)%mq->capacity;
+    mq->arr[mq->last] = item;
+    mq->size = mq->size + 1;
+    // printf("%d enqueued to queue\n", item);
 }
 
 int dequeue(struct intMessageQueue* mq)                // ALWAYS CHECK IF EMPTY BEFORE USING DEQUEUE
-{   
+{
 
-    if (isEmpty(mq)) 
-        {cprintf("dequeue from EMPTY\n");return -3;}  
-    int item = mq->arr[mq->front]; 
-    mq->front = (mq->front + 1)%mq->capacity; 
-    mq->size = mq->size - 1; 
-    return item; 
+    if (isEmpty(mq))
+        {cprintf("dequeue from EMPTY\n");return -3;}
+    int item = mq->arr[mq->front];
+    mq->front = (mq->front + 1)%mq->capacity;
+    mq->size = mq->size - 1;
+    return item;
 }
 
 
@@ -417,7 +412,7 @@ copyFromSystemSpace(char *to,char *from, int len)
 }
 
 
-int 
+int
 getMessageBuffer(void)
 {
 	// int msg_no = free_message_buffer;
@@ -434,7 +429,7 @@ getMessageBuffer(void)
 
 }
 
-void 
+void
 freeMessageBuffer(int msg_no)
 {
 	messageBuffers[msg_no][0]= free_message_buffer;
@@ -442,10 +437,3 @@ freeMessageBuffer(int msg_no)
 }
 
 // code for queues
-
-
-
-
-
-
-

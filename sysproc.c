@@ -111,7 +111,7 @@ sys_halt(void)
 
 int
 sys_toggle(void)
-{ 
+{
   if(isTraceOn==0)
     {
       isTraceOn=1;
@@ -126,75 +126,76 @@ sys_toggle(void)
   return 0;
 }
 
-int 
-sys_print_count(void)
-{ 
-  if(isTraceOn==1)
-  {num_calls[SYS_print_count] ++;}
 
-  const int sorted_syscalls_int[]={SYS_add , SYS_chdir , SYS_close , SYS_dup , SYS_exec , SYS_exit , SYS_fork , SYS_fstat , SYS_getpid , SYS_kill , SYS_link ,
-  SYS_mkdir , SYS_mknod , SYS_open , SYS_pipe , SYS_print_count , SYS_ps , SYS_read ,SYS_recv, SYS_sbrk ,SYS_send, SYS_sleep , SYS_toggle , SYS_unlink , SYS_uptime , SYS_wait , SYS_write };
-
-
-const char* sorted_syscalls_str[]={"sys_add ", "sys_chdir ", "sys_close ", "sys_dup ", "sys_exec ", "sys_exit ", "sys_fork ", "sys_fstat ", "sys_getpid ", "sys_kill ", "sys_link ",
-  "sys_mkdir ", "sys_mknod ", "sys_open ", "sys_pipe ", "sys_print_count ", "sys_ps ", "sys_read ","sys_recv", "sys_sbrk ","sys_send", "sys_sleep ", "sys_toggle ", "sys_unlink ", "sys_uptime ", "sys_wait ", "sys_write "};
-
-  for(int i =0;i<27;i++)
-    { if(num_calls[sorted_syscalls_int[i]]!=0)
-      cprintf("%s%d\n", sorted_syscalls_str[i], num_calls[sorted_syscalls_int[i]] );
-    }
-    return 0;
-}
-
-int 
-sys_add(int a ,int b)
-{ if(isTraceOn==1)
-  {num_calls[SYS_add] ++;}
-  // cprintf("sum is calculated\n");
-  argint(0,&a);
-  argint(1,&b);
-
-  // cprintf("sum is, %d \n", a+b);
-
-  return a+b;
-}
 
 
 int
 sys_ps(void)
-{   if(isTraceOn==1)
-  {num_calls[SYS_ps] ++;}
-    running_procs();
-    // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    // if(p->state == RUNNING)
-    //   {
-    //     cprintf("pid:%d name:%s",p->pid,p->name)
-    //     cprintf("\n");
-    //   }
-    return 0;
+{
+  // cprintf("ps call hua%s\n");
+  if(isTraceOn==1){num_calls[SYS_ps] ++;}
+  running_procs();
+return 0;
 }
 
 int
 sys_create_container(int cid){
+  // cprintf("Create container call hua%s\n");
   argint(0,&cid);
-  cprintf("%d\n",cid);
+  for (int i = 0; i < 100; i++) {
+    if (container_location[i]==1){
+      if(container_array[i].cid==cid){return -1;}
+    }
+  }
+  for ( int i=0; i<100 ; i++) {
+    if (container_location[i]!=1){
+      struct container new_container;
+      new_container.cid = cid;
+      container_array[i]=new_container;
+      container_location[i]=1;
+      container_array[i].number_of_process=0;
+      break;
+    }
+  }
   return cid;
 }
 
 int
 sys_destroy_container(int cid){
   argint(0,&cid);
-  return 1;
+  for (int i = 0; i < 100; i++) {
+    if (container_location[i]==1){
+      if(container_array[i].cid==cid){
+        // container_array[i]=null;
+        container_location[i]=0;
+        return 1;
+        }
+    }
+  }
+  return -1;
 }
 
 int
 sys_join_container(int cid){
+  // cprintf("Join container call hua%s\n");
   argint(0,&cid);
-  return 1;
+  int r = join_cont(cid);
+  return r;
 }
 
 int
 sys_leave_container(void){
-  
-  return 1;
+  struct proc *curproc = myproc();
+  int cid = curproc->cid;
+  for (int i = 0; i < 100; i++) {
+    if (container_location[i]==1){
+      if(container_array[i].cid==cid){
+        curproc->cid = 0;
+        container_array[i].mypid[container_array[i].number_of_process] = -1;
+        container_array[i].number_of_process--;
+        return 1;
+      }
+    }
+  }
+  return -1;
 }
