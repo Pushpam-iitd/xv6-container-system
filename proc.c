@@ -10,6 +10,7 @@
 #include "malloc.h"
 // #include "queues.h"
 // #include "stdlib.h"
+int cid_to_ptable = 0;
 
 struct {
   struct spinlock lock;
@@ -17,7 +18,6 @@ struct {
 } ptable;
 
 static struct proc *initproc;
-
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
@@ -42,10 +42,10 @@ struct cpu*
 mycpu(void)
 {
   int apicid, i;
-  
+
   if(readeflags()&FL_IF)
     panic("mycpu called with interrupts enabled\n");
-  
+
   apicid = lapicid();
   // APIC IDs are not guaranteed to be contiguous. Maybe we should have
   // a reverse map, or reserve a register to store &cpus[i].
@@ -128,7 +128,7 @@ userinit(void)
   extern char _binary_initcode_start[], _binary_initcode_size[];
 
   p = allocproc();
-  
+
   initproc = p;
   if((p->pgdir = setupkvm()) == 0)
     panic("userinit: out of memory?");
@@ -279,7 +279,7 @@ wait(void)
   struct proc *p;
   int havekids, pid;
   struct proc *curproc = myproc();
-  
+
   acquire(&ptable.lock);
   for(;;){
     // Scan through table looking for exited children.
@@ -329,7 +329,7 @@ scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-  
+
   for(;;){
     // Enable interrupts on this processor.
     sti();
@@ -365,7 +365,7 @@ scheduler2(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-  
+
   for(;;){
     // Enable interrupts on this processor.
     // sti();
@@ -458,7 +458,7 @@ void
 sleep(void *chan, struct spinlock *lk)
 {
   struct proc *p = myproc();
-  
+
   if(p == 0)
     panic("sleep");
 
@@ -580,32 +580,100 @@ procdump(void)
 */
 void
 running_procs(void)
-{ 
-    // struct proc *p;
-  acquire(&ptable.lock);
-    for(int p = 0; p < NPROC; p++)
-    { 
-      struct proc *pr;
-      pr = &ptable.proc[p];
-
-      // if(pr->pid==1||pr->pid==2){
-      //   cprintf("%d state was %d \n",pr->pid,pr->state);
-      // }
-
-      if(pr->state != UNUSED)
+{
+  if (cid_to_ptable!=1){
+    // cprintf("Done in ps%s\n");
+    acquire(&ptable.lock);
+      for(int p = 0; p < NPROC; p++)
       {
-        cprintf("pid:%d name:%s",pr->pid,pr->name);
-        cprintf("\n");
+        struct proc *pr;
+        pr = &ptable.proc[p];
+        pr->cid = -1;
+      }
+    release(&ptable.lock);
+    cid_to_ptable = 1;
+  }
+  struct proc *curproc = myproc();
+  int cid = curproc->cid;
+
+  if (cid== -1){
+    // cprintf("Pehle me ghusa%s\n");
+    acquire(&ptable.lock);
+      for(int p = 0; p < NPROC; p++)
+      {
+        struct proc *pr;
+        pr = &ptable.proc[p];
+        if(pr->state != UNUSED)
+        {
+          cprintf("pid:%d name:%s",pr->pid,pr->name);
+          cprintf("\n");
+        }
+      }
+    release(&ptable.lock);
+  }
+  else{
+    // cprintf("Doosre me ghusa%s\n");
+    int c = 0;
+    for (int i = 0; i < 100; i++) {
+      if (container_location[i]==1){
+        if(container_array[i].cid==cid){
+          c=i;
+          break;
+        }
+      }
+    }
+    acquire(&ptable.lock);
+    for (int i = 0; i < container_array[c].number_of_process+1; i++) {
+      for(int p = 0; p < NPROC; p++)
+      {
+        struct proc *pr;
+        pr = &ptable.proc[p];
+        if(pr->pid==container_array[c].mypid[i] && pr->state != UNUSED)
+        {
+          cprintf("pid:%d name:%s",pr->pid,pr->name);
+          cprintf("\n");
+        }
       }
     }
     release(&ptable.lock);
+  }
+}
+
+
+int
+join_cont(int cid){
+  // cprintf("cid_to_ptable is:%d\n",cid_to_ptable);
+  if (cid_to_ptable!=1){
+    // cprintf("Done in join%s\n");
+    acquire(&ptable.lock);
+      for(int p = 0; p < NPROC; p++)
+      {
+        struct proc *pr;
+        pr = &ptable.proc[p];
+        pr->cid = -1;
+      }
+    release(&ptable.lock);
+    cid_to_ptable = 1;
+  }
+  for (int i = 0; i < 100; i++) {
+    if (container_location[i]==1) {
+      if(container_array[i].cid==cid){
+        struct proc *curproc = myproc();
+        container_array[i].mypid[container_array[i].number_of_process]=curproc->pid;
+        curproc->cid = cid;
+        container_array[i].number_of_process++;
+        return 1;
+      }
+    }
+  }
+  return -1;
 }
 
 
 
-void 
+void
 TransferMessage(int msg_no, char* msg)
-{ 
+{
   int len = 8;
   copyFromSystemSpace(msg,messageBuffers[msg_no],len);          // message size is 8
   // freeMessageBuffer(msg_no);
@@ -615,7 +683,7 @@ TransferMessage(int msg_no, char* msg)
 // sys call for send message//
 int
 sys_send(int sender_pid, int rec_pid, void *msg)
-{ 
+{
   if(isTraceOn==1)
   {num_calls[SYS_send] ++;}
 
@@ -632,7 +700,7 @@ sys_send(int sender_pid, int rec_pid, void *msg)
   safestrcpy(messageBuffers[msg_no],str,8);
 
   if( isWaitEmpty(wait_queue[rec_pid]) == 0 )          // some proc is waiting
-  {                                                    // amke that process runnable so that scheduler can run it 
+  {                                                    // amke that process runnable so that scheduler can run it
     int pid = (waitdequeue(wait_queue[rec_pid])).pid;  // and it can recieve.
     ptable.proc[pid].state = RUNNABLE;
   }
@@ -645,7 +713,7 @@ sys_send(int sender_pid, int rec_pid, void *msg)
 
 int
 sys_recv(void *msg)
-{ 
+{
 
   if(isTraceOn==1)
   {num_calls[SYS_recv] ++;}
@@ -654,7 +722,7 @@ sys_recv(void *msg)
   argstr(0,&str);
   struct proc *curproc = myproc();
   if(isEmpty(int_message_queue[curproc->pid]) == 1)
-  { 
+  {
 
     curproc->state = SLEEPING;                    // block the current process
     struct waitQueueItem item;
@@ -664,7 +732,7 @@ sys_recv(void *msg)
     sched();                                     // call the scheduler (non-blocking)
   }
   else{
-  int msg_no= dequeue(int_message_queue[curproc->pid]);  
+  int msg_no= dequeue(int_message_queue[curproc->pid]);
   safestrcpy(str,messageBuffers[msg_no],8);            // if there is message in the message queue then recieve it
   }
   return 1;

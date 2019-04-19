@@ -198,8 +198,5 @@ void            clearpteu(pde_t *pgdir, char *uva);
 
 // NEW CODE FOR QUESTION - 1
 
-int num_calls[30];   // ASSUMING THERE ARE ONLY 30 SYSCALLS PRESENT, CAN BE INCREASED AT WILL
+int num_calls[40];   // ASSUMING THERE ARE ONLY 30 SYSCALLS PRESENT, CAN BE INCREASED AT WILL
 int isTraceOn ;   //DEFAULT TRACE IS OFF, 1 FOR ON
-
-
-	
