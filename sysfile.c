@@ -81,14 +81,7 @@ sys_read(void)
   // if (cid==-1 || create_container_called == 0){
   return fileread(f, p, n);
     // }
-//   else{
-//   int ind = curproc->cid;
-//     // int ind = 67;
-//   char *sind = (char *)kalloc();
-//     // strncpy(sind,my_itoa(ind,sind),);
-//   sind = my_itoa(ind,sind);
-//   char *path2 = strcat(path,sind);
-//   }
+
 }
 
 int
