@@ -23,10 +23,9 @@
 #define SYS_halt   22
 #define SYS_toggle 23
 #define SYS_ps     24
-#define SYS_newopen 25
-#define SYS_destroy_container 26
-#define SYS_join_container 27
-#define SYS_leave_container 28
-#define SYS_create_container 29
-#define SYS_send   30
-#define SYS_recv   31
+#define SYS_destroy_container 25
+#define SYS_join_container 26
+#define SYS_leave_container 27
+#define SYS_create_container 28
+#define SYS_send   29
+#define SYS_recv   30

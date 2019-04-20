@@ -32,7 +32,7 @@ int create_container(int);
 int destroy_container(int);
 int join_container(int);
 int leave_container(void);
-int newopen(const char*, int);
+// int newopen(const char*, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -138,27 +138,6 @@ sys_ps(void)
 return 0;
 }
 
-int
-sys_create_container(int cid){
-  // cprintf("Create container call hua%s\n");
-  argint(0,&cid);
-  for (int i = 0; i < 100; i++) {
-    if (container_location[i]==1){
-      if(container_array[i].cid==cid){return -1;}
-    }
-  }
-  for ( int i=0; i<100 ; i++) {
-    if (container_location[i]!=1){
-      struct container new_container;
-      new_container.cid = cid;
-      container_array[i]=new_container;
-      container_location[i]=1;
-      container_array[i].number_of_process=0;
-      break;
-    }
-  }
-  return cid;
-}
 
 int
 sys_destroy_container(int cid){
