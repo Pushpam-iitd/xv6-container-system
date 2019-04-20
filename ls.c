@@ -2,6 +2,22 @@
 #include "stat.h"
 #include "user.h"
 #include "fs.h"
+// #include "defs.h"
+
+int
+mystrcmp (char *s1, char *s2)
+{
+    int a =0,b=0;
+    while(*s1){a++;s1++;}
+    while(*s2){b++;s2++;}
+
+    if(a!=b)return 0;
+    // printf("here");
+    while(a--){
+        if(*s1++ != *s2++)return 0;
+    }
+    return 1;
+}
 
 char*
 fmtname(char *path)
@@ -25,6 +41,14 @@ fmtname(char *path)
 void
 ls(char *path)
 {
+
+  int cid = getcid();
+  printf(2, "cid is: %d\n", cid);
+
+  printf(2,"File number %d\n",num_all_files);
+
+  if(cid <=0)
+  {
   char buf[512], *p;
   int fd;
   struct dirent de;
@@ -39,9 +63,16 @@ ls(char *path)
     close(fd);
     return;
   }
-
+  int flag;
   switch(st.type){
   case T_FILE:
+    flag =0;
+    for (int i = 0; i < num_all_files; i++) {
+      if (mystrcmp(fmtname(path),all_files[i])==1){
+        printf(1,"Yaha ghusa 2\n");
+        flag = 1; break;}
+    }
+    if (flag == 1) break;
     printf(1, "%s %d %d %d\n", fmtname(path), st.type, st.ino, st.size);
     break;
 
@@ -54,6 +85,7 @@ ls(char *path)
     p = buf+strlen(buf);
     *p++ = '/';
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
+      flag = 0;
       if(de.inum == 0)
         continue;
       memmove(p, de.name, DIRSIZ);
@@ -62,12 +94,22 @@ ls(char *path)
         printf(1, "ls: cannot stat %s\n", buf);
         continue;
       }
+      for (int i = 0; i < num_all_files; i++) {
+        if (mystrcmp(fmtname(path),all_files[i])==1) {
+          printf(1,"Yaha ghusa 2\n");
+          flag=1;break;}
+      }
+      if (flag==1) break;
       printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
     }
     break;
   }
   close(fd);
 }
+}
+
+
+
 
 int
 main(int argc, char *argv[])

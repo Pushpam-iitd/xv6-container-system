@@ -29,3 +29,4 @@
 #define SYS_create_container 28
 #define SYS_send   29
 #define SYS_recv   30
+#define SYS_getcid  31

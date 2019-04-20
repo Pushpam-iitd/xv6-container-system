@@ -16,17 +16,7 @@ extern void running_procs(void);
 extern int join_cont(int);
 
 // new code
-struct container{
-  int cid;  //container id
-  int number_of_process;
-  int number_of_files;
-  int mypid[100]; // pids belonging to the container
-  char* container_files[100];
-  int copied_or_not[100];
-};
 
-struct container container_array[100];
-int container_location[100];
 
 // end new code
 

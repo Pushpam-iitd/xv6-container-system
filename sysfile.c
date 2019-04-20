@@ -15,8 +15,10 @@
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
-
 int create_container_called = 0;
+
+
+
 
 
 static int
@@ -494,6 +496,7 @@ sys_open(void)
   struct file *f;
   struct inode *ip;
 
+
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     {cprintf("yahan nahi aana chahiye 0\n");
     return -1;}
@@ -535,6 +538,7 @@ sys_open(void)
     // cprintf("yahan nahi aana chahiye 1\n");
     if (cid==-1 || create_container_called == 0){
     ip = create(path, T_FILE, 0, 0);
+
     }
     else{
       create_in_container = 1;
@@ -591,16 +595,20 @@ sys_open(void)
   f->path = path;
   f->cid = -1;
 
-  if (cid==-1 || create_container_called == 0){ return fd;}
+
+  if (cid==-1 || create_container_called == 0){ ip->cid= -1;
+    return fd;}
+
   if (pehle_se_hai_conatiner_me == 1){
-    cprintf("pehle_se_hai_conatiner_me\n");
+    cprintf("pehle_se_hai_conatiner_me  %d \n",cid);
+    ip->cid = cid;
     return fd;
   }
+  cprintf("here? \n");
+
   if (create_in_container == 1) {
     int ind = curproc->cid;
-    // int ind = 67;
     char *sind = (char *)kalloc();
-    // strncpy(sind,my_itoa(ind,sind),);
     sind = my_itoa(ind,sind);
     char *ipath3 = path;
     char *path6 = strcat(ipath3,sind);
@@ -610,12 +618,19 @@ sys_open(void)
 
             container_array[i].container_files[container_array[i].number_of_files] = path6;
             container_array[i].copied_or_not[container_array[i].number_of_files] = 0;
+            container_array[i].type[container_array[i].number_of_files]=ip->type;
+            container_array[i].ino[container_array[i].number_of_files]=ip->inum;
+            container_array[i].size[container_array[i].number_of_files]=ip->size;
             container_array[i].number_of_files++;
         }
       }
     }
+    all_files[num_all_files] = path6;
+    corresponding_cid[num_all_files] = cid;
+    num_all_files++;
     f->path = path6;
     f->cid = cid;
+    ip->cid= cid;
     return fd;
   }
 
@@ -672,6 +687,7 @@ sys_open(void)
   f2->writable =1;
   f2->path = path2;
   f2->cid = cid;
+  ip2->cid = cid;
 
 
   cprintf("yahan 2 \n");
@@ -709,6 +725,7 @@ sys_open(void)
   int fd3;
   struct file *f3;
   struct inode *ip3;
+
 
   path3 = path2;
   // if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
@@ -755,6 +772,7 @@ sys_open(void)
   f3->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   f3->path = path3;
   f3->cid = cid;
+  ip3->cid = cid;
 
   // n1 = fileread(f3, &c, 1);
   // cprintf("reading  %s \n",c);
@@ -764,11 +782,18 @@ sys_open(void)
       if(container_array[i].cid==cid){
           container_array[i].container_files[container_array[i].number_of_files] = path3;
           container_array[i].copied_or_not[container_array[i].number_of_files] = 1;
+          container_array[i].type[container_array[i].number_of_files]=ip3->type;
+          container_array[i].ino[container_array[i].number_of_files]=ip3->inum;
+          container_array[i].size[container_array[i].number_of_files]=ip3->size;
           container_array[i].number_of_files++;
       }
     }
   }
   cprintf("yahan fd3 is %d \n",fd3);
+  all_files[num_all_files] = path3;
+  cprintf("File ka naam aya: %s",all_files[0]);
+  corresponding_cid[num_all_files] = cid;
+  num_all_files++;
   return fd3;
 }
 

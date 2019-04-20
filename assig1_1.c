@@ -1,6 +1,8 @@
 #include "types.h"
 #include "stat.h"
 #include "user.h"
+#include "fcntl.h"
+
 
 int
 main(void)
@@ -21,6 +23,10 @@ main(void)
 	if (pid==0){
 		create_container(k);
 		join_container(k);
+		char* s = "Rahul";
+    int fd2 = open("arrn", O_CREATE | O_RDWR);
+    write(fd2,s,5);
+    close(fd2);
 		ps();
 		exit();
 	}

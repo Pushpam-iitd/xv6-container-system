@@ -51,6 +51,13 @@ sys_getpid(void)
 }
 
 int
+sys_getcid(void)
+{ if(isTraceOn==1)
+  {num_calls[SYS_getpid] ++;}
+  return myproc()->cid;
+}
+
+int
 sys_sbrk(void)
 { if(isTraceOn==1)
   {num_calls[SYS_sbrk] ++;}

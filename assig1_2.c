@@ -15,10 +15,15 @@ main(int argc, char *argv[])
 		create_container(2);
 		join_container(2);
 		ps();
-    int fd2 = open("arrn", O_CREATE | O_RDWR);
+    // char* s = "Rahul";
+    int fd2 = open("arrnew",0);
+    // write(fd2,s,5);
     close(fd2);
-    int fd3 = open("arrn", 0);
-    close(fd3);
+    // int fd3 = open("arrn", 0);
+    // char* s2 = (char*)malloc(5);
+    // read(fd3,s2,5);
+    // printf(1,"%s",s2);
+    // close(fd3);
 		exit();
 	}
 	else{
