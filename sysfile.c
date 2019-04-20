@@ -451,15 +451,33 @@ char* my_itoa(int i, char* b){
     return b;
 }
 
-char* strcat(char* s1, const char* s2)
+char* strcat(char* s1,const char* s2)
 {
-  char* b = s1;
+  char* b = (char*)kalloc();
+  char* c= b;
 
-  while (*s1) ++s1;
-  while (*s2) *s1++ = *s2++;
-  *s1 = 0;
+  while (*s1)  *b++=*s1++;
+  while (*s2) {
+    *b=*s2;
+    b++;
+    s2++;}
+  *b = 0;
 
-  return b;
+  return c;
+}
+int
+mystrcmp (char *s1, char *s2)
+{
+    int a =0,b=0;
+    while(*s1){a++;s1++;}
+    while(*s2){b++;s2++;}
+
+    if(a!=b)return 0;
+    // printf("here");
+    while(a--){
+        if(*s1++ != *s2++)return 0;
+    }
+    return 1;
 }
 
 // char buf[4];
@@ -471,6 +489,8 @@ sys_open(void)
   int create_in_container = 0;
   struct proc *curproc = myproc();
   int cid = curproc->cid;
+
+
 
   if(isTraceOn==1)
   {num_calls[SYS_open] ++;}
@@ -485,10 +505,41 @@ sys_open(void)
     {cprintf("yahan nahi aana chahiye 0\n");
     return -1;}
 
+
+
+
+
+  int pehle_se_hai_conatiner_me = 0;
+
+  for (int i = 0; i < 100; i++) {
+    if (container_location[i]==1){
+      if(container_array[i].cid==cid){
+        int ind = curproc->cid;
+        // int ind = 67;
+        char *sind = (char *)kalloc();
+        // strncpy(sind,my_itoa(ind,sind),);
+        char *ipath = path;
+        sind = my_itoa(ind,sind);
+        char *path4 = strcat(ipath,sind);
+        // cprintf("path is:%s\n",path4);
+          for (int j = 0; j < container_array[i].number_of_files; j++) {
+            cprintf("path is: %s\n",container_array[i].container_files[j]);
+            if (mystrcmp(container_array[i].container_files[j],path4)){
+              cprintf("yahan aya\n");
+              pehle_se_hai_conatiner_me = 1;
+              path = path4;
+              break;
+            }
+          }
+          break;
+      }
+    }
+  }
+
   begin_op();
 
   if(omode & O_CREATE){
-    cprintf("yahan nahi aana chahiye 1\n");
+    // cprintf("yahan nahi aana chahiye 1\n");
     if (cid==-1 || create_container_called == 0){
     ip = create(path, T_FILE, 0, 0);
     }
@@ -499,8 +550,10 @@ sys_open(void)
       char *sind = (char *)kalloc();
       // strncpy(sind,my_itoa(ind,sind),);
       sind = my_itoa(ind,sind);
-      char *path2 = strcat(path,sind);
-      ip = create(path2, T_FILE, 0, 0);
+      char *ipath2 = path;
+      char *path5 = strcat(ipath2,sind);
+      cprintf("path is:%s\n",path5 );
+      ip = create(path5, T_FILE, 0, 0);
     }
     if(ip == 0){
       end_op();
@@ -543,15 +596,36 @@ sys_open(void)
   f->readable = !(omode & O_WRONLY);
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   f->path = path;
-  f->cid = 0;
+  f->cid = -1;
 
-  if (cid==-1 || create_container_called == 0 ){return fd;}
+  if (cid==-1 || create_container_called == 0){ return fd;}
+  if (pehle_se_hai_conatiner_me == 1){
+    cprintf("pehle_se_hai_conatiner_me\n");
+    return fd;
+  }
   if (create_in_container == 1) {
+    int ind = curproc->cid;
+    // int ind = 67;
+    char *sind = (char *)kalloc();
+    // strncpy(sind,my_itoa(ind,sind),);
+    sind = my_itoa(ind,sind);
+    char *ipath3 = path;
+    char *path6 = strcat(ipath3,sind);
+    for (int i = 0; i < 100; i++) {
+      if (container_location[i]==1){
+        if(container_array[i].cid==cid){
 
-    
+            container_array[i].container_files[container_array[i].number_of_files] = path6;
+            container_array[i].copied_or_not[container_array[i].number_of_files] = 0;
+            container_array[i].number_of_files++;
+        }
+      }
+    }
+    f->path = path6;
     f->cid = cid;
     return fd;
   }
+
 
   // fd has the original file
 
@@ -565,9 +639,10 @@ sys_open(void)
   int ind = curproc->cid;
   // int ind = 67;
   char *sind = (char *)kalloc();
-  // strncpy(sind,my_itoa(ind,sind),);
+  // strncpy(sind,my_itoa(ind,sind));
   sind = my_itoa(ind,sind);
-  char *path2 = strcat(path,sind);
+  char *ipath4 = path;
+  char *path2 = strcat(ipath4,sind);
   // cprintf("path 2 is %s\n",path2);
   struct inode *ip2;
 
@@ -686,11 +761,20 @@ sys_open(void)
   f3->readable = !(omode & O_WRONLY);
   f3->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   f3->path = path3;
-  f3->cid = 0;
+  f3->cid = cid;
 
   // n1 = fileread(f3, &c, 1);
   // cprintf("reading  %s \n",c);
 
+  for (int i = 0; i < 100; i++) {
+    if (container_location[i]==1){
+      if(container_array[i].cid==cid){
+          container_array[i].container_files[container_array[i].number_of_files] = path3;
+          container_array[i].copied_or_not[container_array[i].number_of_files] = 1;
+          container_array[i].number_of_files++;
+      }
+    }
+  }
   cprintf("yahan fd3 is %d \n",fd3);
   return fd3;
 }
@@ -712,6 +796,7 @@ sys_create_container(int cid){
       container_array[i]=new_container;
       container_location[i]=1;
       container_array[i].number_of_process=0;
+      container_array[i].number_of_files=0;
       break;
     }
   }

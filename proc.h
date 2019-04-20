@@ -19,6 +19,7 @@ extern int join_cont(int);
 struct container{
   int cid;  //container id
   int number_of_process;
+  int number_of_files;
   int mypid[100]; // pids belonging to the container
   char* container_files[100];
   int copied_or_not[100];
