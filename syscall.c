@@ -115,6 +115,7 @@ extern int sys_create_container(void);
 extern int sys_destroy_container(void);
 extern int sys_join_container(void);
 extern int sys_leave_container(void);
+extern int sys_newopen(void);
 
 
 
@@ -148,6 +149,7 @@ static int (*syscalls[])(void) = {
 [SYS_destroy_container] sys_destroy_container,
 [SYS_join_container] sys_join_container,
 [SYS_leave_container] sys_leave_container,
+[SYS_newopen] sys_newopen,  
 [SYS_send]	  sys_send,
 [SYS_recv]    sys_recv,
 };

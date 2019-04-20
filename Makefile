@@ -182,10 +182,11 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_assig1_1\
+	_assig1_2\
 	_container\
 
-fs.img: mkfs README assig2a.inp arr $(UPROGS)
-	./mkfs fs.img README assig2a.inp arr $(UPROGS)
+fs.img: mkfs README assig2a.inp arr arrnew $(UPROGS)
+	./mkfs fs.img README assig2a.inp arr arrnew $(UPROGS)
 
 -include *.d
 
@@ -253,6 +254,7 @@ EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
 	assig1_1.c\
+	assig1_2.c\
 	container.c\
 	umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\

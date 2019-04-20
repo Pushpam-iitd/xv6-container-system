@@ -351,6 +351,7 @@ sys_open(void)
 
 char* my_itoa(int i, char* b){
     char const digit[] = "0123456789";
+    char const sig[] = "_";
     char* p = b;
     // if(i<0){
     //     *p++ = '-';
@@ -361,11 +362,15 @@ char* my_itoa(int i, char* b){
         ++p;
         n = n/10;
     }while(n);
+    p++;
     *p = '\0';
     do{
         *--p = digit[i%10];
         i = i/10;
     }while(i);
+    // p--;
+    *--p = sig[0];
+
     return b;
 }
 
@@ -380,8 +385,7 @@ char* strcat(char* s1, const char* s2)
   return b;
 }
 
-
-char *buf;
+// char buf[4];
 
 int
 sys_newopen(void)
@@ -396,24 +400,32 @@ sys_newopen(void)
   struct inode *ip;
 
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
-    return -1;
+    {cprintf("yahan nahi aana chahiye 0\n");
+    return -1;}
 
   begin_op();
 
   if(omode & O_CREATE){
+    cprintf("yahan nahi aana chahiye 1\n");
+
     ip = create(path, T_FILE, 0, 0);
     if(ip == 0){
       end_op();
       return -1;
     }
+
   } 
   else {
     if((ip = namei(path)) == 0){
       end_op();
       return -1;
+      cprintf("yahan nahi aana chahiye 2\n");
+
     }
     ilock(ip);
     if(ip->type == T_DIR && omode != O_RDONLY){
+    cprintf("yahan nahi aana chahiye 3\n");
+
       iunlockput(ip);
       end_op();
       return -1;
@@ -421,6 +433,8 @@ sys_newopen(void)
   }
 
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
+    cprintf("yahan nahi aana chahiye 4\n");
+
     if(f)
       fileclose(f);
     iunlockput(ip);
@@ -436,27 +450,40 @@ sys_newopen(void)
   f->readable = !(omode & O_WRONLY);
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   f->path = path;
+  f->cid = 0;
+
   // return fd;
 
   // fd has the original file
+
+  // ------------------------------------------------------------------------------
+  // COPY CONTENTS OF F TO F2, AND CLOSE BOTH F AND F2
+  // ------------------------------------------------------------------------------
+
   struct proc *curproc = myproc();
   struct file *f2;
   int fd2;
   int ind = curproc->cid;
-
+  // int ind = 67;
   char *sind = (char *)kalloc();
   // strncpy(sind,my_itoa(ind,sind),);
   sind = my_itoa(ind,sind);
   char *path2 = strcat(path,sind);
+  // cprintf("path 2 is %s\n",path2);
   struct inode *ip2;
 
   begin_op();
   ip2 = create(path2, T_FILE, 0, 0);
   if(ip2 == 0){
+    cprintf("yahan nahi aana chahiye 5\n");
+
     end_op();
     return -1;
+    cprintf("ip2 0 \n");
   }
 
+
+  cprintf("file 2 is created\n");
   if((f2 = filealloc()) == 0 || (fd2 = fdalloc(f2)) < 0){
     if(f2)
       fileclose(f2);
@@ -464,6 +491,9 @@ sys_newopen(void)
     end_op();
     return -1;
   }
+  cprintf("yahan 1 \n");
+
+
   iunlock(ip2);
   end_op();
 
@@ -471,19 +501,99 @@ sys_newopen(void)
   f2->ip = ip2;
   f2->off = 0;
   f2->readable = !(omode & O_WRONLY);
-  f2->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+  // f2->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+  f2->writable =1;
   f2->path = path2;
+  f2->cid = 0;
 
-  int n;
 
-  while( (n = fileread(f, buf, 1)) > 0 ){
-    filewrite(f2,buf,1);
+  cprintf("yahan 2 \n");
+
+
+  // return fd;
+  while(1){
+    int n1;
+    char c[512];    
+    n1 = fileread(f, c, sizeof(c)) ;
+    if(n1<=0)break;
+    n1 = filewrite(f2,c,sizeof(c));
+    // cprintf("reading  %s \n",c);
+    if(n1<0)
+      cprintf("error in writing in newopen \n");
   }
+  // return fd;  
+  f2->off = 0;
+  f->off = 0;
+
+  cprintf("yahan 2 fd2 ka offset %d\n", f2->off);
 
   myproc()->ofile[fd] = 0;
   fileclose(f);
 
-  return fd2;  
+  myproc()->ofile[fd2] = 0;
+  fileclose(f2);
+
+
+
+  // ------------------------------------------------------------------------------
+  // OPEN F2 AGAIN AS F3
+  // ------------------------------------------------------------------------------
+  char *path3;
+  int fd3;
+  struct file *f3;
+  struct inode *ip3;
+
+  path3 = path2;
+  // if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
+  //   return -1;
+
+  begin_op();
+
+  if(omode & O_CREATE){
+    cprintf("yahan nahi aana chahiye 6\n");
+    ip3 = create(path3, T_FILE, 0, 0);
+    if(ip3 == 0){
+      end_op();
+      return -1;
+    }
+  }
+
+  else {
+    if((ip3 = namei(path3)) == 0){
+      end_op();
+      return -1;
+    }
+    ilock(ip3);
+    if(ip3->type == T_DIR && omode != O_RDONLY){
+      iunlockput(ip3);
+      end_op();
+      return -1;
+    }
+  }
+
+  if((f3 = filealloc()) == 0 || (fd3 = fdalloc(f3)) < 0){
+    if(f3)
+      fileclose(f3);
+    iunlockput(ip3);
+    end_op();
+    return -1;
+  }
+  iunlock(ip3);
+  end_op();
+
+  f3->type = FD_INODE;
+  f3->ip = ip3;
+  f3->off = 0;
+  f3->readable = !(omode & O_WRONLY);
+  f3->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+  f3->path = path3;
+  f3->cid = 0;
+
+  // n1 = fileread(f3, &c, 1);
+  // cprintf("reading  %s \n",c);  
+
+  cprintf("yahan fd3 is %d \n",fd3);
+  return fd3;
 }
 
 // end  new code
