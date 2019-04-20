@@ -78,7 +78,17 @@ sys_read(void)
 
   if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
     return -1;
+  // if (cid==-1 || create_container_called == 0){
   return fileread(f, p, n);
+    // }
+//   else{
+//   int ind = curproc->cid;
+//     // int ind = 67;
+//   char *sind = (char *)kalloc();
+//     // strncpy(sind,my_itoa(ind,sind),);
+//   sind = my_itoa(ind,sind);
+//   char *path2 = strcat(path,sind);
+//   }
 }
 
 int
@@ -458,6 +468,7 @@ char* strcat(char* s1, const char* s2)
 int
 sys_open(void)
 {
+  int create_in_container = 0;
   struct proc *curproc = myproc();
   int cid = curproc->cid;
 
@@ -478,8 +489,19 @@ sys_open(void)
 
   if(omode & O_CREATE){
     cprintf("yahan nahi aana chahiye 1\n");
-
+    if (cid==-1 || create_container_called == 0){
     ip = create(path, T_FILE, 0, 0);
+    }
+    else{
+      create_in_container = 1;
+      int ind = curproc->cid;
+      // int ind = 67;
+      char *sind = (char *)kalloc();
+      // strncpy(sind,my_itoa(ind,sind),);
+      sind = my_itoa(ind,sind);
+      char *path2 = strcat(path,sind);
+      ip = create(path2, T_FILE, 0, 0);
+    }
     if(ip == 0){
       end_op();
       return -1;
@@ -523,7 +545,13 @@ sys_open(void)
   f->path = path;
   f->cid = 0;
 
-  if (cid==-1 || create_container_called == 0){return fd;}
+  if (cid==-1 || create_container_called == 0 ){return fd;}
+  if (create_in_container == 1) {
+
+    
+    f->cid = cid;
+    return fd;
+  }
 
   // fd has the original file
 
@@ -575,7 +603,7 @@ sys_open(void)
   // f2->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   f2->writable =1;
   f2->path = path2;
-  f2->cid = 0;
+  f2->cid = cid;
 
 
   cprintf("yahan 2 \n");

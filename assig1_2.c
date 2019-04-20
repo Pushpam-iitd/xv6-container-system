@@ -12,10 +12,10 @@ main(int argc, char *argv[])
   int pid;
   pid = fork();
   if (pid==0){
-		create_container(1);
-		join_container(1);
+		create_container(2);
+		join_container(2);
 		ps();
-    int fd2 = open("arrnew", 0);
+    int fd2 = open("arrn", O_CREATE | O_RDWR);
     printf(1,"returns  \n");
     for(int i=0; i<size; i++){
   		read(fd2, &c, 1);
