@@ -173,7 +173,6 @@ UPROGS=\
 	_init\
 	_kill\
 	_ln\
-	_ls\
 	_mkdir\
 	_rm\
 	_sh\
@@ -184,6 +183,7 @@ UPROGS=\
 	_assig1_1\
 	_assig1_2\
 	_container\
+	_test\
 
 fs.img: mkfs README assig2a.inp arr arrnew $(UPROGS)
 	./mkfs fs.img README assig2a.inp arr arrnew $(UPROGS)
@@ -257,6 +257,7 @@ EXTRA=\
 	assig1_2.c\
 	container.c\
 	umalloc.c\
+	test.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
 

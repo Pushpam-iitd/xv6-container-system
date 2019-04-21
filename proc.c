@@ -597,6 +597,8 @@ running_procs(void)
   struct proc *curproc = myproc();
   int cid = curproc->cid;
 
+  // cprintf("cid is:%d\n",cid);
+
   if (cid== -1){
     // cprintf("Pehle me ghusa%s\n");
     acquire(&ptable.lock);
@@ -623,14 +625,16 @@ running_procs(void)
         }
       }
     }
+    cprintf("Num_process is:%d\n",container_array[c].number_of_process);
     acquire(&ptable.lock);
-    for (int i = 0; i < container_array[c].number_of_process+1; i++) {
+    for (int i = 0; i < container_array[c].number_of_process; i++) {
       for(int p = 0; p < NPROC; p++)
       {
         struct proc *pr;
         pr = &ptable.proc[p];
         if(pr->pid==container_array[c].mypid[i] && pr->state != UNUSED)
         {
+          cprintf("i is:%d",i);
           cprintf("pid:%d name:%s",pr->pid,pr->name);
           cprintf("\n");
         }
@@ -643,6 +647,7 @@ running_procs(void)
 
 int
 join_cont(int cid){
+
   // cprintf("cid_to_ptable is:%d\n",cid_to_ptable);
   if (cid_to_ptable!=1){
     // cprintf("Done in join%s\n");
@@ -660,9 +665,14 @@ join_cont(int cid){
     if (container_location[i]==1) {
       if(container_array[i].cid==cid){
         struct proc *curproc = myproc();
+        // acquire(container_array[i].lock);
         container_array[i].mypid[container_array[i].number_of_process]=curproc->pid;
         curproc->cid = cid;
-        container_array[i].number_of_process++;
+
+        container_array[i].number_of_process = container_array[i].number_of_process+1;
+        cprintf("i is:%d\n",i);
+        // cprintf("Num_process is:%d\n",container_array[i].number_of_process);
+        // release(container_array[i].lock);
         return 1;
       }
     }

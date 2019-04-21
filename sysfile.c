@@ -421,7 +421,7 @@ sys_pipe(void)
 
 char* my_itoa(int i, char* b){
     char const digit[] = "0123456789";
-    char const sig[] = "_";
+    char const sig[] = "$";
     char* p = b;
     // if(i<0){
     //     *p++ = '-';
@@ -484,6 +484,9 @@ sys_open(void)
   int cid = curproc->cid;
 
   // cprintf("cid is :%d",cid);
+  if (*ls_called==1){cid = -1;}
+
+  // cprintf("ls_called is %d\n",*ls_called);
 
 
   if(isTraceOn==1)

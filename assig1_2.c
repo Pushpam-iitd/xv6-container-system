@@ -17,11 +17,12 @@ main(int argc, char *argv[])
 		join_container(2);
 		// // ps();
     // // char* s = "Rahul";
-    int fd2 = open("newfile",0);
+    int fd2 = open("newfile",O_CREATE | O_RDWR);
     // // write(fd2,s,5);
 
     close(fd2);
-    ls(".");
+
+
 
     // int fd3 = open("arrn", 0);
     // char* s2 = (char*)malloc(5);
@@ -32,6 +33,7 @@ main(int argc, char *argv[])
 		exit();
 	}
 	else{
+    ls(".");
 		exit();
 	}
 }

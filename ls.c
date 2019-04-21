@@ -5,6 +5,23 @@
 #include "ls.h"
 // #include "defs.h"
 
+char* removelast(char *s){
+    int a = 0;
+    char* b = (char*)malloc(100);
+    while(*s){
+        if(s[0] == '$')
+        {
+            break;
+        }
+        *b = *s;
+        s++;
+        b++;
+        a++;
+    }
+    while(a--){s--;b--;}
+    return b;
+}
+
 int
 mystrcmp (char *s1, char *s2)
 {
@@ -42,10 +59,11 @@ fmtname(char *path)
 void
 ls(char *path)
 {
+  *ls_called = 1;
 
   int cid = getcid();
 
-  printf(2, "Cid is: %d\n", cid);
+  // printf(2, "Cid is: %d\n", cid);
   char buf[512], *p;
   int fd;
   struct dirent de;
@@ -62,10 +80,13 @@ ls(char *path)
   }
   switch(st.type){
   case T_FILE:
-    if (st.cid ==0 || st.cid==-1 || st.cid == cid){
-    printf(1, "%s %d %d %d %d\n", fmtname(path), st.type, st.ino, st.size, st.cid);
-    break;
-  }break;
+    if (st.cid ==0 || st.cid==-1){
+    printf(1, "%s %d %d %d\n", fmtname(path), st.type, st.ino, st.size);
+  }
+  if (st.cid == cid){
+  printf(1, "%s %d %d %d\n", fmtname(removelast(path)), st.type, st.ino, st.size);
+}
+  break;
 
   case T_DIR:
     if(strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
@@ -84,12 +105,17 @@ ls(char *path)
         printf(1, "ls: cannot stat %s\n", buf);
         continue;
       }
-      if (st.cid ==0 || st.cid==-1 || st.cid == cid){
-      printf(1, "%s %d %d %d %d\n", fmtname(buf), st.type, st.ino, st.size, st.cid);}
+      if (st.cid ==0 || st.cid==-1){
+      printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+    }
+    if (st.cid == cid){
+    printf(1, "%s %d %d %d\n", fmtname(removelast(buf)), st.type, st.ino, st.size);
+  }
     }
     break;
   }
   close(fd);
+  *ls_called=0;
 
 }
 

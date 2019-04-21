@@ -6,6 +6,8 @@ typedef uint pde_t;
 
 #define MSGSIZE 8
 
+int* ls_called;
+
 struct container{
   int cid;  //container id
   int number_of_process;
