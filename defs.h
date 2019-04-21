@@ -52,7 +52,7 @@ int             namecmp(const char*, const char*);
 struct inode*   namei(char*);
 struct inode*   nameiparent(char*, char*);
 int             readi(struct inode*, char*, uint, uint);
-void            stati(struct inode*, struct stat*);
+void            stati(struct inode*, struct stat*,int);
 int             writei(struct inode*, char*, uint, uint);
 
 // ide.c

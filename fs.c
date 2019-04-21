@@ -438,14 +438,14 @@ itrunc(struct inode *ip)
 // Copy stat information from inode.
 // Caller must hold ip->lock.
 void
-stati(struct inode *ip, struct stat *st)
+stati(struct inode *ip, struct stat *st,int cid)
 {
   st->dev = ip->dev;
   st->ino = ip->inum;
   st->type = ip->type;
   st->nlink = ip->nlink;
   st->size = ip->size;
-  st->cid = ip->cid;
+  st->cid = cid;
 }
 
 //PAGEBREAK!

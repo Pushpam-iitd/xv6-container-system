@@ -80,9 +80,7 @@ sys_read(void)
 
   if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
     return -1;
-  // if (cid==-1 || create_container_called == 0){
   return fileread(f, p, n);
-    // }
 
 }
 
@@ -470,7 +468,7 @@ mystrcmp (char *s1, char *s2)
     if(a!=b)return 0;
     // printf("here");
     while(a--){
-        if(*s1++ != *s2++)return 0;
+        if(*s1-- != *s2--)return 0;
     }
     return 1;
 }
@@ -485,6 +483,7 @@ sys_open(void)
   struct proc *curproc = myproc();
   int cid = curproc->cid;
 
+  // cprintf("cid is :%d",cid);
 
 
   if(isTraceOn==1)
@@ -498,7 +497,8 @@ sys_open(void)
 
 
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
-    {cprintf("yahan nahi aana chahiye 0\n");
+    {
+      // cprintf("yahan nahi aana chahiye 0\n");
     return -1;}
 
 
@@ -519,9 +519,9 @@ sys_open(void)
         char *path4 = strcat(ipath,sind);
         // cprintf("path is:%s\n",path4);
           for (int j = 0; j < container_array[i].number_of_files; j++) {
-            cprintf("path is: %s\n",container_array[i].container_files[j]);
+            // cprintf("path is: %s\n",container_array[i].container_files[j]);
             if (mystrcmp(container_array[i].container_files[j],path4)){
-              cprintf("yahan aya\n");
+              // cprintf("yahan aya\n");
               pehle_se_hai_conatiner_me = 1;
               path = path4;
               break;
@@ -549,7 +549,7 @@ sys_open(void)
       sind = my_itoa(ind,sind);
       char *ipath2 = path;
       char *path5 = strcat(ipath2,sind);
-      cprintf("path is:%s\n",path5 );
+      // cprintf("path is:%s\n",path5 );
       ip = create(path5, T_FILE, 0, 0);
     }
     if(ip == 0){
@@ -562,12 +562,12 @@ sys_open(void)
     if((ip = namei(path)) == 0){
       end_op();
       return -1;
-      cprintf("yahan nahi aana chahiye 2\n");
+      // cprintf("yahan nahi aana chahiye 2\n");
 
     }
     ilock(ip);
     if(ip->type == T_DIR && omode != O_RDONLY){
-    cprintf("yahan nahi aana chahiye 3\n");
+    // cprintf("yahan nahi aana chahiye 3\n");
 
       iunlockput(ip);
       end_op();
@@ -576,7 +576,7 @@ sys_open(void)
   }
 
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
-    cprintf("yahan nahi aana chahiye 4\n");
+    // cprintf("yahan nahi aana chahiye 4\n");
 
     if(f)
       fileclose(f);
@@ -593,18 +593,41 @@ sys_open(void)
   f->readable = !(omode & O_WRONLY);
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   f->path = path;
-  f->cid = -1;
+  int mil_gaya_container_me = 0;
+  int cid_no_ofFile;
 
 
-  if (cid==-1 || create_container_called == 0){ ip->cid= -1;
+
+  for (int i = 0; i < num_all_files; i++) {
+    char *dot_slash = "./";
+    char* new_path = strcat(dot_slash,all_files[i]);
+    // cprintf("Path %s\n",path);
+    // cprintf("New Path %s\n",new_path);
+    // cprintf("Ans is %d\n",mystrcmp(path,new_path));
+    if (mystrcmp(path,new_path)==1){
+      mil_gaya_container_me=1;
+      cid_no_ofFile = corresponding_cid[i];
+      break;
+    }
+  }
+  // cprintf("mil_gaya_container_me is %d\n",mil_gaya_container_me);
+  // cprintf("Contains %s\n",all_files[0]);
+  // cprintf("Path %s\n",new_path);
+  if (mil_gaya_container_me==1){f->cid = cid_no_ofFile;}
+  else{f->cid = -1;}
+
+
+  if (cid==-1 || create_container_called == 0){
+
+    // if (ip->cid==0) {ip->cid= -1;}
     return fd;}
 
   if (pehle_se_hai_conatiner_me == 1){
-    cprintf("pehle_se_hai_conatiner_me  %d \n",cid);
-    ip->cid = cid;
+    // cprintf("pehle_se_hai_conatiner_me  %d \n",cid);
+    // ip->cid = cid;
     return fd;
   }
-  cprintf("here? \n");
+  // cprintf("here? \n");
 
   if (create_in_container == 1) {
     int ind = curproc->cid;
@@ -629,8 +652,8 @@ sys_open(void)
     corresponding_cid[num_all_files] = cid;
     num_all_files++;
     f->path = path6;
-    f->cid = cid;
-    ip->cid= cid;
+    if (f->cid==0){f->cid = cid;}
+    // if (ip->cid==0){ip->cid= cid;}
     return fd;
   }
 
@@ -657,15 +680,15 @@ sys_open(void)
   begin_op();
   ip2 = create(path2, T_FILE, 0, 0);
   if(ip2 == 0){
-    cprintf("yahan nahi aana chahiye 5\n");
+    // cprintf("yahan nahi aana chahiye 5\n");
 
     end_op();
     return -1;
-    cprintf("ip2 0 \n");
+    // cprintf("ip2 0 \n");
   }
 
 
-  cprintf("file 2 is created\n");
+  // cprintf("file 2 is created\n");
   if((f2 = filealloc()) == 0 || (fd2 = fdalloc(f2)) < 0){
     if(f2)
       fileclose(f2);
@@ -673,7 +696,7 @@ sys_open(void)
     end_op();
     return -1;
   }
-  cprintf("yahan 1 \n");
+  // cprintf("yahan 1 \n");
 
 
   iunlock(ip2);
@@ -686,11 +709,11 @@ sys_open(void)
   // f2->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   f2->writable =1;
   f2->path = path2;
-  f2->cid = cid;
-  ip2->cid = cid;
+  if (f2->cid==0 || f2->cid == -1){f2->cid = cid;}
+  // if (ip2->cid==0){ip2->cid = cid;}
 
 
-  cprintf("yahan 2 \n");
+  // cprintf("yahan 2 \n");
 
 
   // return fd;
@@ -708,7 +731,7 @@ sys_open(void)
   f2->off = 0;
   f->off = 0;
 
-  cprintf("yahan 2 fd2 ka offset %d\n", f2->off);
+  // cprintf("yahan 2 fd2 ka offset %d\n", f2->off);
 
   myproc()->ofile[fd] = 0;
   fileclose(f);
@@ -734,7 +757,7 @@ sys_open(void)
   begin_op();
 
   if(omode & O_CREATE){
-    cprintf("yahan nahi aana chahiye 6\n");
+    // cprintf("yahan nahi aana chahiye 6\n");
     ip3 = create(path3, T_FILE, 0, 0);
     if(ip3 == 0){
       end_op();
@@ -771,8 +794,8 @@ sys_open(void)
   f3->readable = !(omode & O_WRONLY);
   f3->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   f3->path = path3;
-  f3->cid = cid;
-  ip3->cid = cid;
+  if (f3->cid==0 || f3->cid == -1){f3->cid = cid;}
+  // if (ip3->cid==0){ip3->cid = cid;}
 
   // n1 = fileread(f3, &c, 1);
   // cprintf("reading  %s \n",c);
@@ -789,9 +812,9 @@ sys_open(void)
       }
     }
   }
-  cprintf("yahan fd3 is %d \n",fd3);
+  // cprintf("yahan fd3 is %d \n",fd3);
   all_files[num_all_files] = path3;
-  cprintf("File ka naam aya: %s",all_files[0]);
+  // cprintf("File ka naam aya: %s",all_files[0]);
   corresponding_cid[num_all_files] = cid;
   num_all_files++;
   return fd3;

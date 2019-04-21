@@ -33,6 +33,9 @@ int destroy_container(int);
 int join_container(int);
 int leave_container(void);
 int getcid(void);
+// int mystrcmp (char* a, char* b);
+// char* fmtname(char* a);
+// void ls(char* a);
 
 // ulib.c
 int stat(const char*, struct stat*);

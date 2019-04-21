@@ -2,6 +2,7 @@
 #include "stat.h"
 #include "user.h"
 #include "fs.h"
+#include "ls.h"
 // #include "defs.h"
 
 int
@@ -43,12 +44,8 @@ ls(char *path)
 {
 
   int cid = getcid();
-  printf(2, "cid is: %d\n", cid);
 
-  printf(2,"File number %d\n",num_all_files);
-
-  if(cid <=0)
-  {
+  printf(2, "Cid is: %d\n", cid);
   char buf[512], *p;
   int fd;
   struct dirent de;
@@ -63,18 +60,12 @@ ls(char *path)
     close(fd);
     return;
   }
-  int flag;
   switch(st.type){
   case T_FILE:
-    flag =0;
-    for (int i = 0; i < num_all_files; i++) {
-      if (mystrcmp(fmtname(path),all_files[i])==1){
-        printf(1,"Yaha ghusa 2\n");
-        flag = 1; break;}
-    }
-    if (flag == 1) break;
-    printf(1, "%s %d %d %d\n", fmtname(path), st.type, st.ino, st.size);
+    if (st.cid ==0 || st.cid==-1 || st.cid == cid){
+    printf(1, "%s %d %d %d %d\n", fmtname(path), st.type, st.ino, st.size, st.cid);
     break;
+  }break;
 
   case T_DIR:
     if(strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
@@ -85,7 +76,6 @@ ls(char *path)
     p = buf+strlen(buf);
     *p++ = '/';
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
-      flag = 0;
       if(de.inum == 0)
         continue;
       memmove(p, de.name, DIRSIZ);
@@ -94,33 +84,28 @@ ls(char *path)
         printf(1, "ls: cannot stat %s\n", buf);
         continue;
       }
-      for (int i = 0; i < num_all_files; i++) {
-        if (mystrcmp(fmtname(path),all_files[i])==1) {
-          printf(1,"Yaha ghusa 2\n");
-          flag=1;break;}
-      }
-      if (flag==1) break;
-      printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+      if (st.cid ==0 || st.cid==-1 || st.cid == cid){
+      printf(1, "%s %d %d %d %d\n", fmtname(buf), st.type, st.ino, st.size, st.cid);}
     }
     break;
   }
   close(fd);
+
 }
-}
 
 
 
 
-int
-main(int argc, char *argv[])
-{
-  int i;
-
-  if(argc < 2){
-    ls(".");
-    exit();
-  }
-  for(i=1; i<argc; i++)
-    ls(argv[i]);
-  exit();
-}
+// int
+// main(int argc, char *argv[])
+// {
+//   int i;
+//
+//   if(argc < 2){
+//     ls(".");
+//     exit();
+//   }
+//   for(i=1; i<argc; i++)
+//     ls(argv[i]);
+//   exit();
+// }

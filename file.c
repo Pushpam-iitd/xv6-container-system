@@ -85,7 +85,8 @@ filestat(struct file *f, struct stat *st)
 {
   if(f->type == FD_INODE){
     ilock(f->ip);
-    stati(f->ip, st);
+    stati(f->ip, st,f->cid);
+    // st->cid = f->cid;
     iunlock(f->ip);
     return 0;
   }
@@ -154,4 +155,3 @@ filewrite(struct file *f, char *addr, int n)
   }
   panic("filewrite");
 }
-
