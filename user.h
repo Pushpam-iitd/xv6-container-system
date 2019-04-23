@@ -33,6 +33,7 @@ int destroy_container(int);
 int join_container(int);
 int leave_container(void);
 int getcid(void);
+int scheduler_log(void);
 // int mystrcmp (char* a, char* b);
 // char* fmtname(char* a);
 // void ls(char* a);

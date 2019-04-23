@@ -143,7 +143,7 @@ tags: $(OBJS) entryother.S _init
 vectors.S: vectors.pl
 	./vectors.pl > vectors.S
 
-ULIB = ulib.o ls.o usys.o printf.o umalloc.o
+ULIB = ulib.o ls.o cat.o usys.o printf.o umalloc.o
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
@@ -180,9 +180,6 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
-	_assig1_1\
-	_assig1_2\
-	_container\
 	_test\
 
 fs.img: mkfs README assig2a.inp arr arrnew $(UPROGS)
@@ -251,11 +248,8 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 # check in that version.
 
 EXTRA=\
-	mkfs.c ulib.c user.h ls.h cat.c echo.c forktest.c grep.c kill.c\
+	mkfs.c ulib.c user.h ls.h cat.c cat.h echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
-	assig1_1.c\
-	assig1_2.c\
-	container.c\
 	umalloc.c\
 	test.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\

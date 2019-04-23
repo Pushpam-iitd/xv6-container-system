@@ -846,3 +846,9 @@ sys_create_container(int cid){
   }
   return cid;
 }
+
+int
+sys_scheduler_log(void){
+  sch_log = 1 - sch_log;
+  return 1;
+}

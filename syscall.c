@@ -116,6 +116,7 @@ extern int sys_destroy_container(void);
 extern int sys_join_container(void);
 extern int sys_leave_container(void);
 extern int sys_getcid(void);
+extern int sys_scheduler_log(void);
 
 
 
@@ -152,6 +153,7 @@ static int (*syscalls[])(void) = {
 [SYS_send]	  sys_send,
 [SYS_recv]    sys_recv,
 [SYS_getcid]      sys_getcid,
+[SYS_scheduler_log] sys_scheduler_log,
 };
 
 // static int (*syscalls2[])(int,int) = {

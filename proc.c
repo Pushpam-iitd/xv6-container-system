@@ -36,6 +36,38 @@ cpuid() {
   return mycpu()-cpus;
 }
 
+char* my_itoa_1(int i, char* b){
+    char const digit[] = "0123456789";
+    char* p = b;
+    int n = i;
+    do{
+        ++p;
+        n = n/10;
+    }while(n);
+    *p = '\0';
+    do{
+        *--p = digit[i%10];
+        i = i/10;
+    }while(i);
+    return b;
+}
+
+
+char* my_strcat(char* s1,const char* s2)
+{
+  char* b = (char*)kalloc();
+  char* c= b;
+
+  while (*s1)  *b++=*s1++;
+  while (*s2) {
+    *b=*s2;
+    b++;
+    s2++;}
+  *b = 0;
+
+  return c;
+}
+
 // Must be called with interrupts disabled to avoid the caller being
 // rescheduled between reading lapicid and running through the loop.
 struct cpu*
@@ -348,6 +380,20 @@ scheduler(void)
       switchuvm(p);
       p->state = RUNNING;
 
+      if (sch_log == 1){
+      char* str = (char*)kalloc();
+      char* str_cid = (char*)kalloc();
+      char* str_pid = (char*)kalloc();
+
+      char* str1 = my_strcat("Container ",my_itoa_1(p->cid,str_cid));
+      char* str2 = my_strcat(" : Scheduling process ",my_itoa_1(p->pid,str_pid));
+
+      str = my_strcat(str1,str2);
+
+      cprintf("%s\n",str);
+    }
+
+
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -625,7 +671,9 @@ running_procs(void)
         }
       }
     }
-    cprintf("Num_process is:%d\n",container_array[c].number_of_process);
+    // cprintf("pid is:%d\n",container_array[c].mypid[0]);
+    // cprintf("pid is:%d\n",container_array[c].mypid[1]);
+    // cprintf("pid is:%d\n",container_array[c].mypid[2]);
     acquire(&ptable.lock);
     for (int i = 0; i < container_array[c].number_of_process; i++) {
       for(int p = 0; p < NPROC; p++)
@@ -634,7 +682,7 @@ running_procs(void)
         pr = &ptable.proc[p];
         if(pr->pid==container_array[c].mypid[i] && pr->state != UNUSED)
         {
-          cprintf("i is:%d",i);
+          // cprintf("i is:%d",i);
           cprintf("pid:%d name:%s",pr->pid,pr->name);
           cprintf("\n");
         }
@@ -670,7 +718,7 @@ join_cont(int cid){
         curproc->cid = cid;
 
         container_array[i].number_of_process = container_array[i].number_of_process+1;
-        cprintf("i is:%d\n",i);
+        // cprintf("i is:%d\n",i);
         // cprintf("Num_process is:%d\n",container_array[i].number_of_process);
         // release(container_array[i].lock);
         return 1;

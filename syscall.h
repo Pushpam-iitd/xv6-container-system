@@ -30,3 +30,4 @@
 #define SYS_send   29
 #define SYS_recv   30
 #define SYS_getcid  31
+#define SYS_scheduler_log 32
