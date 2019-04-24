@@ -15,7 +15,7 @@ extern int ncpu;
 extern void running_procs(void);
 extern int join_cont(int);
 
-int sch_log;
+int sch_log[100];
 
 // new code
 

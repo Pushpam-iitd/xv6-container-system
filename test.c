@@ -8,10 +8,6 @@
 char* my_itoa_1(int i, char* b){
     char const digit[] = "0123456789";
     char* p = b;
-    // if(i<0){
-    //     *p++ = '-';
-    //     i *= -1;
-    // }
     int n = i;
     do{
         ++p;
@@ -66,8 +62,14 @@ main(int argc, char *argv[])
 
 
     if (k==4 || k==5) join_container(k-2);
-
+  //
     if (k==3 || k==4 || k==5) ps();
+
+    if (k==3 || k==4 || k==5) {
+    scheduler_log();
+    sleep(1);
+    scheduler_log();
+  }
 
     if (k==5) ls(".");
 
@@ -89,7 +91,7 @@ main(int argc, char *argv[])
     cat("my_file");
   }
 
-
+    sleep(200);
     leave_container();
     exit();
 	}

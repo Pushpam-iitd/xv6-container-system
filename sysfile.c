@@ -849,6 +849,9 @@ sys_create_container(int cid){
 
 int
 sys_scheduler_log(void){
-  sch_log = 1 - sch_log;
+  struct proc *curproc = myproc();
+  int cid = curproc->cid;
+  cid_sch_log = cid;
+  sch_log[cid] = 1 - sch_log[cid];
   return 1;
 }

@@ -380,7 +380,7 @@ scheduler(void)
       switchuvm(p);
       p->state = RUNNING;
 
-      if (sch_log == 1){
+      if (sch_log[cid_sch_log] == 1 && cid_sch_log == p->cid){
       char* str = (char*)kalloc();
       char* str_cid = (char*)kalloc();
       char* str_pid = (char*)kalloc();

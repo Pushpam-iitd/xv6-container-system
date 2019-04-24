@@ -6,6 +6,8 @@ typedef uint pde_t;
 
 #define MSGSIZE 8
 
+int cid_sch_log;
+
 int* ls_called;
 
 struct container{
