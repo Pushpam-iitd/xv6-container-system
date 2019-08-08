@@ -1,3 +1,9 @@
+This is an implementation of container system in xv6.
+the user can make multiple containers which have their autonomous file system and process scheduler.
+A file can be opened/edited in multiple container such that each of them has their own version of the file. 
+
+
+Following is the official xv6 readme.
 xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
 Version 6 (v6).  xv6 loosely follows the structure and style of v6,
 but is implemented for a modern x86-based multiprocessor using ANSI C.
